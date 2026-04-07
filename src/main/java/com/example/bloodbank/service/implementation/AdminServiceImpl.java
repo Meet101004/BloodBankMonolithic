@@ -61,12 +61,12 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    public String approveDonor(Long userId) {
+    public String approveUser(Long userId) {
         Optional<User> byId = userRepo.findById(userId);
         if(byId.isPresent()){
             User user = byId.get();
             if(user.getStatus() == true){
-                throw new UserNotFoundException("DONOR Already Approved with id: "+user.getId(),HttpStatus.OK.value());
+                throw new UserNotFoundException("User Already Approved with id: "+user.getId(),HttpStatus.OK.value());
             }
             if(user.getRole().equals("DONOR")){
                 user.setStatus(true);

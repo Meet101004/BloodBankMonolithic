@@ -66,7 +66,9 @@ public class DonorServiceImpl implements DonorService {
         if(byuser.isEmpty()){
             throw new UserNotFoundException("User Not Found",HttpStatus.NOT_FOUND.value());
         }
-        Optional<DonorDetails> byId = donorDetailsRepo.findById(byuser.get().getId());
+        User user = byuser.get();
+
+        Optional<DonorDetails> byId = donorDetailsRepo.findByUser(user);
         System.out.println(byId);
         if(byId.isEmpty()){
             throw new UserNotFoundException("User Not Found with id: "+byId,HttpStatus.NOT_FOUND.value());
@@ -80,7 +82,6 @@ public class DonorServiceImpl implements DonorService {
             donorDetails.setAvailable(donorDetailsProxy.getAvailable());
             donorDetails.setLastDonationDate(LocalDateTime.now());
            // donorDetails.getUser().setName(donorDetailsProxy.getName());
-            User user = byuser.get();
             if (donorDetailsProxy.getUser() != null && donorDetailsProxy.getUser().getName() != null) {
                 user.setName(donorDetailsProxy.getUser().getName());
                 userRepo.save(user);
@@ -94,38 +95,40 @@ public class DonorServiceImpl implements DonorService {
 
         return "Profile Updated Successfully";
     }
-
     @Override
     public String donateBlood(String donorEmail, Integer units) {
-        Optional<User> byEmail = userRepo.findByEmail(donorEmail);
-        Optional<DonorDetails> byId = donorDetailsRepo.findByUser(byEmail.get());
-        System.out.println(byId.get());
-        if(byId.isEmpty()){
-            throw new UserNotFoundException("Donor Not Found with id: ",HttpStatus.NOT_FOUND.value());
+        Optional<User> userOptional = userRepo.findByEmail(donorEmail);
+        if (userOptional.isEmpty()) {
+            throw new UserNotFoundException("User not found with email: " + donorEmail, HttpStatus.NOT_FOUND.value());
         }
-        if(byId.isPresent()) {
-            DonorDetails donor = byId.get();
-            Donation donation = new Donation();
-            donation.setDonorDetails(donor);
-            donation.setDonationDate(LocalDateTime.now());
-            donation.setBloodGroup(donor.getBloodGroup());
-            donation.setQuantity(units);
-            donation.setStatus(true);
-            donationRepo.save(donation);
-            Optional<BloodStock> byBloodGroupOptional = bloodStockRepo.findByBloodGroup(donor.getBloodGroup());
-            if (byBloodGroupOptional.isPresent()) {
-                BloodStock bloodStock = byBloodGroupOptional.get();
-                bloodStock.setAvailableUnits(bloodStock.getAvailableUnits() + units);
-                bloodStock.setLastUpdated(LocalDateTime.now());
-                bloodStockRepo.save(bloodStock);
-            } else {
-                BloodStock stock = new BloodStock();
-                stock.setBloodGroup(donor.getBloodGroup());
-                stock.setAvailableUnits(units);
-                stock.setLastUpdated(LocalDateTime.now());
-                bloodStockRepo.save(stock);
-            }
+        User user = userOptional.get();
+
+        Optional<DonorDetails> donorOptional = donorDetailsRepo.findByUser(user);
+        if (donorOptional.isEmpty()) {
+            throw new UserNotFoundException("Donor not found for user: " + donorEmail, HttpStatus.NOT_FOUND.value());
         }
+        DonorDetails donor = donorOptional.get();
+
+        Donation donation = new Donation();
+        donation.setDonorDetails(donor);
+        donation.setDonationDate(LocalDateTime.now());
+        donation.setBloodGroup(donor.getBloodGroup());
+        donation.setQuantity(units);
+        donation.setStatus(true);
+        donationRepo.save(donation);
+
+        BloodStock bloodStock = bloodStockRepo.findByBloodGroup(donor.getBloodGroup())
+                .orElseGet(() -> {
+                    BloodStock stock = new BloodStock();
+                    stock.setBloodGroup(donor.getBloodGroup());
+                    stock.setAvailableUnits(0);
+                    return stock;
+                });
+
+        bloodStock.setAvailableUnits(bloodStock.getAvailableUnits() + units);
+        bloodStock.setLastUpdated(LocalDateTime.now());
+        bloodStockRepo.save(bloodStock);
+
         return "Blood Donated Successfully";
     }
 
@@ -157,10 +160,11 @@ public class DonorServiceImpl implements DonorService {
     @Override
     public List<historyProxy> getDonationHistory(String donorEmail) {
         Optional<User> byEmail = userRepo.findByEmail(donorEmail);
+        User user = byEmail.get();
         if(byEmail.isEmpty()){
             throw new RuntimeException("Donor Not FOund");
         }
-        Optional<DonorDetails> byId = donorDetailsRepo.findById(byEmail.get().getId());
+        Optional<DonorDetails> byId = donorDetailsRepo.findByUser(user);
         if(byId.isEmpty()){
             throw new UserNotFoundException("Donor Not Found with id: "+byEmail.get().getId(),HttpStatus.NOT_FOUND.value());
         }
@@ -174,5 +178,4 @@ public class DonorServiceImpl implements DonorService {
         }
         return null;
     }
-
 }

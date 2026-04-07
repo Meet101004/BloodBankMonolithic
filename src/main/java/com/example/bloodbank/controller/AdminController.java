@@ -41,7 +41,7 @@ public class AdminController {
     @GetMapping("/donor/{userId}/approve")
     public ResponseEntity<String> approveDonor(@PathVariable String userId){
         System.out.println(userId);
-        String s = adminService.approveDonor(Long.parseLong(userId));
+        String s = adminService.approveUser(Long.parseLong(userId));
         return ResponseEntity.ok(s);
     }
     @GetMapping("/donor/{userId}/reject")

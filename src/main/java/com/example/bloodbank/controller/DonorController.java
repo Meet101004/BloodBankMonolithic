@@ -32,8 +32,8 @@ public class DonorController {
     }
 
     @PostMapping("/donate/{donorEmail}")
-    public ResponseEntity<String> donateBlood(@PathVariable String donorEmail,@RequestBody Integer units){
-        String s = donorService.donateBlood(donorEmail, units);
+    public ResponseEntity<String> donateBlood(@PathVariable String donorEmail,@RequestBody String units){
+        String s = donorService.donateBlood(donorEmail, Integer.parseInt(units));
         return ResponseEntity.ok(s);
     }
 

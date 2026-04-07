@@ -8,6 +8,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
+@CrossOrigin("http://localhost:4200")
 @RestController
 @RequestMapping("/hospital")
 public class HospitalController {
@@ -15,9 +18,9 @@ public class HospitalController {
     @Autowired
     private HospitalService hospitalService;
 
-    @PostMapping("/profile/update/{hospitalId}")
-    public ResponseEntity<String> updateHospital(@PathVariable Long hospitalId,@Valid @RequestBody HospitalProxy hospitalProxy){
-        String s = hospitalService.updateHospital(hospitalId, hospitalProxy);
+    @PostMapping("/profile/update/{hospitalEmail}")
+    public ResponseEntity<String> updateHospital(@PathVariable String hospitalEmail,@Valid @RequestBody HospitalProxy hospitalProxy){
+        String s = hospitalService.updateHospital(hospitalEmail, hospitalProxy);
         return ResponseEntity.ok(s);
     }
 
@@ -27,10 +30,17 @@ public class HospitalController {
         return ResponseEntity.ok(hospitalProfile);
     }
 
-    @PostMapping("/request/{hospitalId}")
-    public ResponseEntity<String> requestBlood(@PathVariable Long hospitalId ,@Valid @RequestBody BloodRequestProxy bloodRequestProxy){
-        String s = hospitalService.requestBlood(hospitalId, bloodRequestProxy);
+    @PostMapping("/request/{hospitalEmail}")
+    public ResponseEntity<String> requestBlood(@PathVariable String hospitalEmail ,@Valid @RequestBody BloodRequestProxy bloodRequestProxy){
+        String s = hospitalService.requestBlood(hospitalEmail, bloodRequestProxy);
         return ResponseEntity.ok(s);
     }
+
+    @GetMapping("/history/{email}")
+    public  ResponseEntity<List<BloodRequestProxy>> getHistory(@PathVariable String email){
+        List<BloodRequestProxy> history = hospitalService.getHistory(email);
+        return ResponseEntity.ok(history);
+    }
+
 
 }

@@ -46,10 +46,12 @@ public class HospitalServiceImpl implements HospitalService {
     }
 
     @Override
-    public String updateHospital(Long hospitalId, HospitalProxy hospitalProxy) {
-        Optional<Hospital> byId = hospitalRepo.findById(hospitalId);
+    public String updateHospital(String hospitalEmail, HospitalProxy hospitalProxy) {
+        Optional<User> byEmail = userRepo.findByEmail(hospitalEmail);
+        User user = byEmail.get();
+        Optional<Hospital> byId = hospitalRepo.findByUser(user);
         if(byId.isEmpty()){
-            throw new UserNotFoundException("Hospital Not Found with thid id: "+hospitalId, HttpStatus.NOT_FOUND.value());
+            throw new UserNotFoundException("Hospital Not Found with thid id: ", HttpStatus.NOT_FOUND.value());
         }
         if(byId.isPresent()){
             Hospital hospital = byId.get();
@@ -64,10 +66,12 @@ public class HospitalServiceImpl implements HospitalService {
     }
 
     @Override
-    public String requestBlood(Long hospitalId ,BloodRequestProxy bloodRequestProxy) {
-        Optional<Hospital> byId = hospitalRepo.findById(hospitalId);
+    public String requestBlood(String hospitalEmail  ,BloodRequestProxy bloodRequestProxy) {
+        Optional<User> byEmail = userRepo.findByEmail(hospitalEmail);
+        User user = byEmail.get();
+        Optional<Hospital> byId = hospitalRepo.findByUser(user);
         if(byId.isEmpty()){
-            throw new UserNotFoundException("Hospital Not Found with thid id: "+hospitalId, HttpStatus.NOT_FOUND.value());
+            throw new UserNotFoundException("Hospital Not Found with thid id: ", HttpStatus.NOT_FOUND.value());
         }
 
         int remainingBlood=0;
@@ -99,5 +103,15 @@ public class HospitalServiceImpl implements HospitalService {
             bloodReqRepo.save(bloodRequest);
         }
         return " Blood Request Sent Successfully";
+    }
+
+    @Override
+    public List<BloodRequestProxy> getHistory(String email) {
+        Optional<User> byEmail1 = userRepo.findByEmail(email);
+        User user = byEmail1.get();
+        Optional<Hospital> byUser = hospitalRepo.findByUser(user);
+        Hospital hospital = byUser.get();
+        List<BloodRequest> allByHospital = bloodReqRepo.findAllByHospital(hospital);
+        return allByHospital.stream().map(r->mapper.entityToProxyBloodRequest(r)).toList();
     }
 }

@@ -17,7 +17,8 @@ public interface AdminService {
 
     List<BloodRequestProxy> getAllBloodRequests();
 
-    String approveDonor(Long donorId);
+    String approveUser(Long donorId);
+
 
     String rejectDonor(Long donorId);
 
