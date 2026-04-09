@@ -6,6 +6,10 @@ import com.example.bloodbank.proxy.DonationProxy;
 import com.example.bloodbank.proxy.UserProxy;
 import com.example.bloodbank.service.AdminService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -20,21 +24,30 @@ public class AdminController {
     private AdminService adminService;
 
     @GetMapping("/users")
-    public ResponseEntity<List<UserProxy>> getAllUsers(){
-        List<UserProxy> allUsers = adminService.getAllUsers();
-        return ResponseEntity.ok(allUsers);
+    public ResponseEntity<Page<UserProxy>> getAllUsers(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id") String sortBy) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
+        return ResponseEntity.ok(adminService.getAllUsers(pageable));
     }
 
     @GetMapping("/donations")
-    public ResponseEntity<List<DonationProxy>> getAllDonations(){
-        List<DonationProxy> allUsers = adminService.getAllDonations();
-        return ResponseEntity.ok(allUsers);
+    public ResponseEntity<Page<DonationProxy>> getAllDonations(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id") String sortBy) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
+        return ResponseEntity.ok(adminService.getAllDonations(pageable));
     }
 
     @GetMapping("/bloodrequests")
-    public ResponseEntity<List<BloodRequestProxy>> getAllBloodRequests(){
-        List<BloodRequestProxy> allUsers = adminService.getAllBloodRequests();
-        return ResponseEntity.ok(allUsers);
+    public ResponseEntity<Page<BloodRequestProxy>> getAllBloodRequests(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id") String sortBy) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
+        return ResponseEntity.ok(adminService.getAllBloodRequests(pageable));
     }
 
 

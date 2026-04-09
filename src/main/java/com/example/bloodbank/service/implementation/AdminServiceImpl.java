@@ -11,6 +11,8 @@ import com.example.bloodbank.service.AdminService;
 import com.example.bloodbank.utils.MapperHelper;
 import com.example.bloodbank.utils.StorageHelper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -43,21 +45,18 @@ public class AdminServiceImpl implements AdminService {
     private HospitalRepo hospitalRepo;
 
     @Override
-    public List<UserProxy> getAllUsers() {
-        List<User> all = userRepo.findAll();
-        return all.stream().map(u->mapper.entityToProxyUser(u)).toList();
+    public Page<UserProxy> getAllUsers(Pageable pageable) {
+        return userRepo.findAll(pageable).map(u -> mapper.entityToProxyUser(u));
     }
 
     @Override
-    public List<DonationProxy> getAllDonations() {
-        List<Donation> all = donationRepo.findAll();
-        return all.stream().map(d->mapper.entityToProxyDonation(d)).toList();
+    public Page<DonationProxy> getAllDonations(Pageable pageable) {
+        return donationRepo.findAll(pageable).map(d -> mapper.entityToProxyDonation(d));
     }
 
     @Override
-    public List<BloodRequestProxy> getAllBloodRequests() {
-        List<BloodRequest> all = bloodReqRepo.findAll();
-        return all.stream().map(b->mapper.entityToProxyBloodRequest(b)).toList();
+    public Page<BloodRequestProxy> getAllBloodRequests(Pageable pageable) {
+        return bloodReqRepo.findAll(pageable).map(b -> mapper.entityToProxyBloodRequest(b));
     }
 
     @Override
