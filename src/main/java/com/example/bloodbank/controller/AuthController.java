@@ -2,6 +2,8 @@ package com.example.bloodbank.controller;
 
 import com.example.bloodbank.models.AuthReq;
 import com.example.bloodbank.models.AuthResp;
+import com.example.bloodbank.models.ForgotPasswordRequest;
+import com.example.bloodbank.models.ResetPasswordRequest;
 import com.example.bloodbank.proxy.UserProxy;
 import com.example.bloodbank.service.AuthService;
 import jakarta.validation.Valid;
@@ -25,9 +27,12 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<AuthResp> login(@RequestBody AuthReq authReq){
-        System.out.println(authReq);
-        AuthResp login = authService.login(authReq);
-        return ResponseEntity.ok(login);
+        AuthResp resp = authService.login(authReq);
+        if (resp.getToken() == null) {
+            // locked or failed — return 200 with message so Angular can read it cleanly
+            return ResponseEntity.ok(resp);
+        }
+        return ResponseEntity.ok(resp);
     }
 
     @PostMapping("/forget")
@@ -35,5 +40,15 @@ public class AuthController {
         System.out.println(authReq);
         String forget = authService.forget(authReq);
         return ResponseEntity.ok(forget);
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<String> forgotPassword(@RequestBody ForgotPasswordRequest request){
+        return ResponseEntity.ok(authService.forgotPassword(request));
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<String> resetPassword(@RequestBody ResetPasswordRequest request){
+        return ResponseEntity.ok(authService.resetPassword(request));
     }
 }

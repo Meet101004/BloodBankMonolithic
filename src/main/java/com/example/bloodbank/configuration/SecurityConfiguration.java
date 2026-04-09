@@ -28,7 +28,7 @@ public class SecurityConfiguration {
                 http.csrf(c->c.disable())
                         .cors(Customizer.withDefaults())
                 .authorizeHttpRequests(auth->auth
-                                .requestMatchers("/auth/register","/auth/login","/auth/forget","/admin/reports").permitAll()
+                                .requestMatchers("/auth/register","/auth/login","/auth/forget","/auth/forgot-password","/auth/reset-password","/admin/reports").permitAll()
                                 .requestMatchers("/admin/**").hasAuthority("ADMIN")
                                 .requestMatchers("/hospital/**").hasAnyAuthority("ADMIN","HOSPITAL")
                                 .requestMatchers("/donor/**").hasAnyAuthority("ADMIN","DONOR")
@@ -36,7 +36,6 @@ public class SecurityConfiguration {
                         )
                         .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                         .sessionManagement(s->s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                        .httpBasic(Customizer.withDefaults())
                         .build();
     }
 

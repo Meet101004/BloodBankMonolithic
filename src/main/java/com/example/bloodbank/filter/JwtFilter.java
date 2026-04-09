@@ -2,6 +2,8 @@ package com.example.bloodbank.filter;
 
 import com.example.bloodbank.service.implementation.MyUserDetailsService;
 import com.example.bloodbank.utils.JwtUtil;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -27,31 +29,41 @@ public class JwtFilter extends OncePerRequestFilter {
     @Autowired
     private MyUserDetailsService myUserDetailsService;
 
-
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String authorization = request.getHeader("Authorization");
-        String token=null;
-        String username=null;
+        String token = null;
+        String username = null;
 
-        if(authorization != null && authorization.startsWith("Bearer ")){
-            token=authorization.substring(7);
-            username=jwtUtil.extractUsername(token);
-        }
-
-        if(token != null && username != null){
-            UserDetails userDetails = myUserDetailsService.loadUserByUsername(username);
-            ArrayList<String> roles = jwtUtil.extractClaim(token, claims -> claims.get("roles", ArrayList.class));
-            List<SimpleGrantedAuthority> grantedAuthorityList=new ArrayList<>();
-            for(String role: roles){
-                SimpleGrantedAuthority s=new SimpleGrantedAuthority(role);
-                grantedAuthorityList.add(s);
-            }
-            if(jwtUtil.validateToken(token,userDetails) && SecurityContextHolder.getContext().getAuthentication() == null){
-                UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken=new UsernamePasswordAuthenticationToken(username,null,grantedAuthorityList);
-                SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
+        if (authorization != null && authorization.startsWith("Bearer ")) {
+            token = authorization.substring(7);
+            try {
+                username = jwtUtil.extractUsername(token);
+            } catch (ExpiredJwtException e) {
+                logger.warn("JWT token is expired: " + e.getMessage());
+            } catch (JwtException e) {
+                logger.warn("Invalid JWT token: " + e.getMessage());
             }
         }
-        filterChain.doFilter(request,response);
+
+        if (token != null && username != null) {
+            try {
+                UserDetails userDetails = myUserDetailsService.loadUserByUsername(username);
+                ArrayList<String> roles = jwtUtil.extractClaim(token, claims -> claims.get("roles", ArrayList.class));
+                List<SimpleGrantedAuthority> grantedAuthorityList = new ArrayList<>();
+                for (String role : roles) {
+                    grantedAuthorityList.add(new SimpleGrantedAuthority(role));
+                }
+                if (jwtUtil.validateToken(token, userDetails) && SecurityContextHolder.getContext().getAuthentication() == null) {
+                    UsernamePasswordAuthenticationToken authToken =
+                            new UsernamePasswordAuthenticationToken(username, null, grantedAuthorityList);
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                }
+            } catch (Exception e) {
+                logger.warn("Could not authenticate user: " + e.getMessage());
+            }
+        }
+
+        filterChain.doFilter(request, response);
     }
 }

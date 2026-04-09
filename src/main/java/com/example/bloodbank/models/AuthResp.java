@@ -13,4 +13,6 @@ public class AuthResp {
 
     private String token;
     private String email;
+    private String message;       // lockout message or success
+    private long lockedForSeconds; // remaining lock duration in seconds
 }

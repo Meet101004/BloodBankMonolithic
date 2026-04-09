@@ -11,21 +11,22 @@ import java.time.LocalDateTime;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class User {
+public class PasswordResetToken {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String name;
 
-    @Column(unique = true)
+    @Column(nullable = false, unique = true)
+    private String token;
+
+    @Column(nullable = false)
     private String email;
 
-    private String password;
-    private String role;
-    private String phone;
-    private Boolean status = true;
+    @Column(nullable = false)
+    private LocalDateTime expiryTime;
 
-    private int failedAttempts = 0;
-    private LocalDateTime lockTime;
+    public boolean isExpired() {
+        return LocalDateTime.now().isAfter(expiryTime);
+    }
 }
